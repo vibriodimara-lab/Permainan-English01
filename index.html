@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team BLR Typing - Game Edukasi Mengetik</title>
+  <!-- Google Fonts: Inter untuk tampilan modern & bersih -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            softblue: {
+              50: '#F0F7FF',
+              100: '#E0EFFF',
+              200: '#C2E0FF',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+            },
+            pastelgreen: {
+              100: '#E6F9F1',
+              400: '#34D399',
+              500: '#10B981',
+            },
+            pastelred: {
+              100: '#FEE2E2',
+              400: '#F87171',
+              500: '#EF4444',
+            },
+            pastelorange: {
+              100: '#FFEDD5',
+              400: '#FB923C',
+              500: '#F97316',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Custom CSS for animations and custom styles -->
+  <style>
+    /* New Custom Background from Rawpixel without any White Overlay */
+    body {
+      background-image: url('https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvcm0yMjJiYXRjaDUta3VsLTAzLmpwZw.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+
+    /* Background Animation Overlay */
+    .bg-animation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .bg-bubble {
+      position: absolute;
+      bottom: -150px;
+      background-color: rgba(59, 130, 246, 0.1);
+      border-radius: 50%;
+      animation: rise 20s infinite linear;
+    }
+    @keyframes rise {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.4;
+      }
+      90% {
+        opacity: 0.4;
+      }
+      100% {
+        transform: translateY(-110vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Shake Animation for Mistakes */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      15%, 45%, 75% { transform: translateX(-8px); }
+      30%, 60%, 90% { transform: translateX(8px); }
+    }
+    .animate-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    /* Strong Shake Animation for Bomb Explosion (Application/Game Screen shake) */
+    @keyframes heavy-shake {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      10% { transform: translate(-12px, -10px) rotate(-3deg); }
+      20% { transform: translate(14px, 12px) rotate(4deg); }
+      30% { transform: translate(-16px, 8px) rotate(-2deg); }
+      40% { transform: translate(12px, -14px) rotate(3deg); }
+      50% { transform: translate(-14px, 10px) rotate(-4deg); }
+      60% { transform: translate(16px, 12px) rotate(2deg); }
+      70% { transform: translate(-12px, -8px) rotate(-3deg); }
+      80% { transform: translate(10px, 14px) rotate(4deg); }
+      90% { transform: translate(-14px, -10px) rotate(-2deg); }
+    }
+    .animate-heavy-shake {
+      animation: heavy-shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    /* Pop/Zoom Animation for Combos & Success */
+    @keyframes pop {
+      0% { transform: scale(0.9); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .animate-pop {
+      animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* Custom Input Highlight */
+    .typing-input:focus {
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    }
+    
+    /* Smooth Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F3F4F6;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Falling animation for Shoot Word Game Mode */
+    #shootFallingArea {
+      position: relative;
+      height: 250px;
+      overflow: hidden;
+    }
+    #fallingWordContainer {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 0;
+      transition: top 0.1s linear;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-800 min-h-screen flex flex-col justify-between overflow-x-hidden relative">
+
+  <!-- Background Animated Elements -->
+  <div class="bg-animation" id="bgAnimation"></div>
+
+  <!-- Header / Navigation -->
+  <header class="w-full max-w-5xl mx-auto px-6 py-4 flex justify-between items-center z-10">
+    <div class="flex items-center space-x-3">
+      <!-- Profile Uploader Area integrated directly into the Blue Logo -->
+      <div class="relative group">
+        <label for="profileImageInput" class="cursor-pointer block relative">
+          <div class="bg-softblue-500 text-white w-12 h-12 rounded-2xl shadow-md shadow-softblue-200 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:bg-softblue-600" id="profileDisplayContainer">
+            <!-- Default Avatar (Owl Cartoon/Icon) in Left Blue Logo box -->
+            <span id="defaultAvatarIcon" class="text-2xl">🦉</span>
+            <img id="userProfileImage" class="w-full h-full object-cover hidden" alt="Profile Image" />
+          </div>
+          <!-- Edit Overlay Icon on Hover -->
+          <div class="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span class="text-[9px] text-white font-black uppercase tracking-wider">Edit</span>
+          </div>
+        </label>
+        <input type="file" id="profileImageInput" accept="image/*" class="hidden" />
+      </div>
+
+      <div>
+        <!-- Logo Text -->
+        <h1 class="text-xl font-extrabold tracking-tight text-slate-800">Team BLR <span class="text-softblue-500">Typing</span></h1>
+        <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Asah Kecepatan Mengetik</p>
+      </div>
+    </div>
+    
+    <!-- Navigation Right Controls: Audio Control only now -->
+    <div class="flex items-center space-x-3">
+      <!-- Audio Controller -->
+      <button id="toggleAudioBtn" class="flex items-center space-x-2 bg-white border border-slate-200 text-slate-600 px-3.5 py-1.5 rounded-full hover:bg-slate-50 transition-all text-sm font-medium shadow-sm">
+        <span id="audioIcon">🔊</span>
+        <span id="audioText" class="hidden sm:inline">Suara: On</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow w-full max-w-4xl mx-auto px-4 py-6 flex flex-col justify-center items-center z-10">
+    
+    <!-- 0. ROOM SELECTION SCREEN (MAIN MENU ENTRY) -->
+    <div id="roomSelectionScreen" class="w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 transition-all duration-300">
+      <div class="text-center mb-8">
+        <span class="inline-block bg-softblue-50 text-softblue-600 font-extrabold text-[11px] px-4 py-1.5 rounded-full mb-3 uppercase tracking-wider shadow-sm border border-softblue-100">
+          ✨ Ayo Belajar Bersama! ✨
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-800 mb-2 tracking-tight">WELCOME TO Team BLR Typing</h2>
+        <p class="text-slate-500 text-sm max-w-lg mx-auto">Tingkatkan fokus, asah kelincahan jari, dan kuasai ratusan kosakata bahasa Inggris melalui tantangan mengetik seru!</p>
+      </div>
+
+      <!-- Room Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+        <!-- Player Room Card -->
+        <button id="toPlayerRoomBtn" class="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-slate-100 bg-gradient-to-b from-white to-slate-50/50 hover:border-softblue-500 hover:bg-softblue-50/30 hover:shadow-lg hover:shadow-softblue-100/50 hover:-translate-y-1 transform transition-all duration-300 group">
+          <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-200">🎮</div>
+          <span class="font-black text-xl text-slate-800 group-hover:text-softblue-600 transition-colors">Ruang Bermain</span>
+          <span class="text-xs text-slate-400 mt-2 text-center max-w-[200px] leading-relaxed">Uji kecepatan mengetik, cetak skor, dan raih rekor di Leaderboard!</span>
+        </button>
+
+        <!-- Admin Room Card -->
+        <button id="toAdminRoomBtn" class="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-slate-100 bg-gradient-to-b from-white to-slate-50/50 hover:border-pastelorange-500 hover:bg-pastelorange-100/10 hover:shadow-lg hover:shadow-orange-100/50 hover:-translate-y-1 transform transition-all duration-300 group">
+          <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-200">⚙️</div>
+          <span class="font-black text-xl text-slate-800 group-hover:text-pastelorange-500 transition-colors">Ruang Admin</span>
+          <span class="text-xs text-slate-400 mt-2 text-center max-w-[200px] leading-relaxed">Tambah kata kustom, impor file excel/text, dan kelola database kata.</span>
+        </button>
+      </div>
+
+      <!-- Educational & Motivational Banner -->
+      <div class="bg-gradient-to-r from-softblue-50 to-indigo-50/50 border border-softblue-100/60 rounded-2xl p-4 flex items-center space-x-4">
+        <div class="text-3xl sm:text-4xl animate-bounce">🦉</div>
+        <div class="flex-grow">
+          <p class="text-[11px] font-extrabold uppercase tracking-widest text-softblue-600">PESAN SEMANGAT UNTUKMU</p>
+          <p id="motivationalQuote" class="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed mt-0.5">
+            "Setiap ketukan jarimu adalah langkah awal untuk menguasai bahasa baru! Tetap konsisten dan pantang menyerah!"
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. HOME SCREEN (INSIDE PLAYER ROOM) -->
+    <div id="homeScreen" class="w-full max-w-xl bg-white rounded-3xl p-8 shadow-xl border border-slate-100/80 transition-all duration-300 hidden">
+      <div class="text-center mb-6">
+        <span class="inline-block bg-softblue-50 text-softblue-600 font-semibold text-xs px-4 py-1.5 rounded-full mb-3 uppercase tracking-wider">Game Edukasi Interaktif</span>
+        <h2 class="text-3xl font-black text-slate-800 mb-1">Tantangan Kosakata Inggris</h2>
+        <p class="text-slate-500 text-sm">Pilih Mode dan Tingkat Kesulitan untuk mulai menguji kemampuanmu!</p>
+      </div>
+
+      <!-- Game Mode Selector -->
+      <div class="mb-6">
+        <h3 class="text-slate-700 font-bold text-xs mb-3 text-center uppercase tracking-wider">PILIH MODE PERMAINAN</h3>
+        <div class="grid grid-cols-3 gap-2.5">
+          <!-- Classic Mode Button -->
+          <button onclick="selectGameMode('classic')" id="modeBtn-classic" class="flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-softblue-500 bg-softblue-50/50 transition-all duration-200 group text-center">
+            <span class="text-xl mb-1">📖</span>
+            <span class="font-bold text-xs text-softblue-600">Classic</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 leading-tight">Tebak Huruf</span>
+          </button>
+          <!-- Shoot World Button -->
+          <button onclick="selectGameMode('shoot')" id="modeBtn-shoot" class="flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-slate-100 bg-white hover:border-softblue-400 transition-all duration-200 group text-center">
+            <span class="text-xl mb-1">🎯</span>
+            <span class="font-bold text-xs text-slate-700 group-hover:text-softblue-500">Shoot Word</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 leading-tight">Kata Meluncur</span>
+          </button>
+          <!-- Puzzle World Button -->
+          <button onclick="selectGameMode('puzzle')" id="modeBtn-puzzle" class="flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-slate-100 bg-white hover:border-softblue-400 transition-all duration-200 group text-center">
+            <span class="text-xl mb-1">🧩</span>
+            <span class="font-bold text-xs text-slate-700 group-hover:text-softblue-500">Puzzle Word</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 leading-tight">Huruf Acak</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Level Selector -->
+      <div class="mb-6">
+        <h3 class="text-slate-700 font-bold text-xs mb-3 text-center uppercase tracking-wider">PILIH TINGKAT KESULITAN</h3>
+        <div class="grid grid-cols-3 gap-3">
+          <!-- Easy -->
+          <button onclick="selectLevel('easy')" id="levelBtn-easy" class="level-btn flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-pastelgreen-400 bg-emerald-50/40 transition-all duration-200 group">
+            <span class="text-2xl mb-1">🌱</span>
+            <span class="font-bold text-slate-800 group-hover:text-pastelgreen-500">Easy</span>
+            <span class="text-xs text-slate-400 mt-1">60 Detik</span>
+          </button>
+          <!-- Medium -->
+          <button onclick="selectLevel('medium')" id="levelBtn-medium" class="level-btn flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-softblue-500 bg-softblue-50/50 hover:border-softblue-500 transition-all duration-200 group">
+            <span class="text-2xl mb-1">⚡</span>
+            <span class="font-bold text-softblue-600">Medium</span>
+            <span class="text-xs text-slate-400 mt-1">45 Detik</span>
+          </button>
+          <!-- Hard -->
+          <button onclick="selectLevel('hard')" id="levelBtn-hard" class="level-btn flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-pastelred-400 bg-rose-50/40 transition-all duration-200 group">
+            <span class="text-2xl mb-1">🔥</span>
+            <span class="font-bold text-slate-800 group-hover:text-pastelred-500">Hard</span>
+            <span class="text-xs text-slate-400 mt-1">30 Detik</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-3">
+        <button id="startGameBtn" class="w-full bg-softblue-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-softblue-150 hover:bg-softblue-600 hover:-translate-y-0.5 transition-all duration-200 text-base flex justify-center items-center space-x-2">
+          <span>Mulai Bermain</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        
+        <button id="showLeaderboardBtn" class="w-full bg-slate-50 border border-slate-200 text-slate-600 font-semibold py-3.5 rounded-2xl hover:bg-slate-100 transition-all duration-200 text-sm flex justify-center items-center space-x-2">
+          <span>Papan Peringkat (Leaderboard)</span>
+        </button>
+
+        <button id="backToRoomsFromHomeBtn" class="w-full bg-slate-50 border border-slate-200 text-slate-400 font-semibold py-2.5 rounded-2xl hover:bg-slate-100 hover:text-slate-600 transition-all duration-200 text-xs flex justify-center items-center space-x-1">
+          <span>← Kembali ke Pilih Ruangan</span>
+        </button>
+      </div>
+
+      <!-- Brief Description of vocabulary -->
+      <div class="mt-6 border-t border-slate-100 pt-5 text-center">
+        <p class="text-xs text-slate-400">Total kosakata terintegrasi: <span id="homeWordCount" class="font-bold text-slate-600">30+ Kata Bahasa Inggris Pilihan</span></p>
+      </div>
+    </div>
+
+    <!-- 1.5. ADMIN SCREEN (INSIDE ADMIN ROOM) -->
+    <div id="adminScreen" class="w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100/80 transition-all duration-300 hidden">
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+        <div>
+          <span class="inline-block bg-pastelorange-100 text-pastelorange-500 font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">Ruang Admin</span>
+          <h2 class="text-2xl font-black text-slate-800 mt-1">Manajemen Kosakata</h2>
+        </div>
+        <button id="backToRoomsFromAdminBtn" class="text-slate-400 hover:text-slate-600 text-sm font-bold flex items-center space-x-1 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 transition-all">
+          <span>← Kembali</span>
+        </button>
+      </div>
+
+      <!-- Word Form -->
+      <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl mb-6">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">Tambah Kosakata Baru</h3>
+        <form id="addWordForm" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">KATA INGGRIS</label>
+            <input type="text" id="adminWordInput" required placeholder="Contoh: Tiger" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-softblue-400" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">ARTI INDONESIA</label>
+            <input type="text" id="adminIndoInput" required placeholder="Contoh: Harimau" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-softblue-400" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">LEVEL</label>
+            <select id="adminLevelSelect" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-softblue-400">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <button type="submit" class="sm:col-span-3 bg-softblue-500 hover:bg-softblue-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors shadow-md shadow-softblue-100">
+            + Tambah Kata ke Database
+          </button>
+        </form>
+
+        <!-- File Upload Area -->
+        <div class="border-t border-slate-200/60 pt-4 mt-4">
+          <h4 class="text-xs font-bold text-slate-600 mb-2">PILIHAN LAIN: UNGGAH KOSAKATA DARI FILE</h4>
+          <div class="flex flex-col sm:flex-row items-center gap-3">
+            <label class="flex-1 w-full flex flex-col items-center justify-center px-4 py-3 bg-white text-softblue-500 rounded-xl border border-dashed border-softblue-300 hover:border-softblue-500 cursor-pointer transition-colors text-center">
+              <span class="text-xs font-bold flex items-center space-x-1">
+                <span>📁 Pilih Berkas (JSON / TXT)</span>
+              </span>
+              <span class="text-[10px] text-slate-400 mt-0.5 font-normal">Mendukung format list teks atau array JSON</span>
+              <input type="file" id="adminFileUploadInput" accept=".json,.txt,.csv" class="hidden" />
+            </label>
+            <div class="text-center sm:text-left">
+              <p class="text-[11px] text-slate-400 font-medium">Format TXT/CSV: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">Kata, Arti, Level</code></p>
+              <p class="text-[11px] text-slate-400 font-medium">Contoh: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">Cat, Kucing, easy</code></p>
+            </div>
+          </div>
+          <!-- Upload Status Indicator -->
+          <p id="uploadStatusMessage" class="hidden text-xs font-semibold mt-2.5 text-center sm:text-left"></p>
+        </div>
+      </div>
+
+      <!-- Word Table List -->
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-sm font-bold text-slate-700">Database Kosakata saat ini (<span id="adminWordCount">0</span> kata)</h3>
+        <button id="resetWordsBtn" class="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-100 transition-all">
+          Reset ke Bawaan
+        </button>
+      </div>
+      
+      <div class="border border-slate-100 rounded-2xl overflow-hidden max-h-60 overflow-y-auto mb-3">
+        <table class="w-full text-left text-sm border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-slate-400 font-bold border-b border-slate-100 sticky top-0">
+              <th class="py-2.5 px-4">Kata Inggris</th>
+              <th class="py-2.5 px-4">Arti Indonesia</th>
+              <th class="py-2.5 px-4 text-center">Level</th>
+              <th class="py-2.5 px-4 text-center w-20">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="adminWordsTableBody">
+            <!-- Dynamic word data goes here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. GAME SCREEN (HIDDEN BY DEFAULT) -->
+    <div id="gameScreen" class="w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100/80 transition-all duration-300 hidden">
+      
+      <!-- Top Bar: Scores, Levels, Combo -->
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+        <!-- Score and Combo -->
+        <div class="flex items-center space-x-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">SKOR</p>
+            <p id="gameScore" class="text-3xl font-black text-slate-800">00</p>
+          </div>
+          <!-- Combo Box -->
+          <div id="comboContainer" class="hidden flex items-center space-x-1.5 bg-pastelorange-100 text-pastelorange-500 px-3.5 py-1.5 rounded-2xl border border-orange-200">
+            <span class="text-sm font-bold">⚡ COMBO</span>
+            <span id="comboMultiplier" class="text-base font-extrabold">x2</span>
+          </div>
+        </div>
+
+        <!-- Exit & Level Indicator Container -->
+        <div class="flex items-center space-x-3.5">
+          <div class="text-right">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">LEVEL</p>
+            <span id="gameLevelBadge" class="inline-block mt-1 px-3 py-1 text-xs font-extrabold rounded-full bg-softblue-50 text-softblue-600 border border-softblue-100">
+              MEDIUM
+            </span>
+          </div>
+          <!-- Exit button while playing -->
+          <button id="exitGameBtn" class="text-rose-500 hover:text-rose-700 text-xs font-bold flex items-center space-x-1 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-xl border border-rose-100 transition-all shadow-sm">
+            <span>🚪 Keluar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Time Progress Indicator -->
+      <div class="mb-6">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sisa Waktu</span>
+          <span id="gameTimerText" class="text-sm font-bold text-slate-700">45s</span>
+        </div>
+        <!-- Progress Bar Background -->
+        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+          <div id="gameTimerBar" class="h-full bg-softblue-500 rounded-full transition-all duration-100" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- Dynamic Active Game Mode Area -->
+      <div class="mb-6">
+        <!-- SUB-AREA A: CLASSIC MODE (Tebak Terjemahan) -->
+        <div id="classicPlayArea" class="hidden flex flex-col items-center justify-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">TERJEMAHKAN KE BAHASA INGGRIS</p>
+          <div id="wordViewer" class="text-3xl sm:text-5xl font-black tracking-wide mb-2 select-none text-softblue-600"></div>
+          <div id="wordTranslation" class="text-2xl font-mono tracking-widest text-slate-400 mt-3 mb-2 flex space-x-1.5"></div>
+        </div>
+
+        <!-- SUB-AREA B: SHOOT WORD MODE (Kata Meluncur) -->
+        <div id="shootPlayArea" class="hidden flex flex-col bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 p-4">
+          <div class="flex justify-between items-center text-xs font-bold text-slate-400 tracking-wider mb-2 border-b border-slate-200/50 pb-2">
+            <span>TEMBAK TERJEMAHANNYA SEBELUM MENYENTUH BATAS!</span>
+            <span class="text-pastelred-500 font-extrabold" id="shootMissedText">Terlewat: 0/3</span>
+          </div>
+          <div id="shootFallingArea" class="w-full">
+            <div id="fallingWordContainer">
+              <div class="bg-gradient-to-r from-softblue-500 to-indigo-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow-lg border border-white flex flex-col items-center">
+                <span id="shootWordQuestion" class="text-xl sm:text-2xl">Buku</span>
+                <span class="text-[10px] uppercase font-bold tracking-widest text-softblue-100 mt-0.5">Ketik Artinya!</span>
+              </div>
+            </div>
+            
+            <!-- Cool Laser neon glowing line at the bottom -->
+            <div class="absolute bottom-1 left-0 right-0 h-1.5 rounded-full overflow-hidden shadow-[0_0_15px_rgba(239,68,68,0.9)]" style="background: linear-gradient(90deg, transparent 0%, #EF4444 50%, transparent 100%);">
+              <div class="w-full h-full bg-gradient-to-r from-red-500 via-pink-500 to-red-500 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-AREA C: PUZZLE WORD MODE (Huruf Acak / Anagram) -->
+        <div id="puzzlePlayArea" class="hidden flex flex-col items-center justify-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">SUSUN HURUF BERIKUT SESUAI ARTI</p>
+          <div id="puzzleWordMeaning" class="text-3xl sm:text-4xl font-black text-softblue-600 mb-4 select-none">Buku</div>
+          
+          <!-- Scrambled bubbles -->
+          <div id="scrambledBubbles" class="flex flex-wrap gap-2 mb-4 justify-center">
+            <!-- Bubbles will render here dynamically -->
+          </div>
+          
+          <!-- Hidden underscores progress preview -->
+          <div id="puzzleWordProgress" class="text-2xl font-mono tracking-widest text-slate-400 mb-2 flex space-x-1.5"></div>
+        </div>
+      </div>
+
+      <!-- Input Field Area -->
+      <div id="inputWrapper" class="w-full max-w-md mx-auto mb-6 transition-all duration-200">
+        <input 
+          type="text" 
+          id="typingInputField" 
+          autocomplete="off" 
+          autocorrect="off" 
+          autocapitalize="off" 
+          spellcheck="false"
+          placeholder="Ketik terjemahannya di sini..." 
+          class="typing-input w-full px-6 py-4 text-center text-xl font-bold bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-softblue-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-300 text-slate-700"
+        />
+        <p class="text-center text-xs text-slate-400 mt-2.5">Gunakan tombol <kbd class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-bold border border-slate-200">Spasi</kbd> atau <kbd class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-bold border border-slate-200">Enter</kbd> untuk verifikasi kata, atau ketik langsung hingga tepat!</p>
+      </div>
+
+      <!-- Quick Session Stats -->
+      <div class="grid grid-cols-3 gap-2 text-center pt-4 border-t border-slate-100">
+        <div>
+          <span class="text-xs text-slate-400 block">Kebenaran Kata</span>
+          <span id="quickWordsCorrect" class="text-sm font-bold text-slate-700">0</span>
+        </div>
+        <div>
+          <span class="text-xs text-slate-400 block">Akurasi Ketikan</span>
+          <span id="quickAccuracy" class="text-sm font-bold text-slate-700">100%</span>
+        </div>
+        <div>
+          <span class="text-xs text-slate-400 block">Combo Maks</span>
+          <span id="quickMaxCombo" class="text-sm font-bold text-slate-700">x0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. GAME OVER / RESULT SCREEN (HIDDEN BY DEFAULT) -->
+    <div id="gameOverScreen" class="w-full max-w-xl bg-white rounded-3xl p-8 shadow-xl border border-slate-100/80 transition-all duration-300 hidden">
+      <div class="text-center mb-8">
+        <div class="inline-block bg-pastelred-100 text-pastelred-500 p-4 rounded-full mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h2 class="text-3xl font-black text-slate-800">Waktu Anda Habis!</h2>
+        <p class="text-slate-500 text-sm mt-1">Luar biasa! Berikut adalah performa belajar Anda sesi ini.</p>
+      </div>
+
+      <!-- Final Stats Cards Grid -->
+      <div class="grid grid-cols-2 gap-4 mb-8">
+        <!-- Score Card -->
+        <div class="bg-softblue-50/50 border border-softblue-100 p-4 rounded-2xl text-center">
+          <span class="text-xs text-softblue-500 font-bold uppercase tracking-wider block mb-1">Total Skor</span>
+          <span id="resultScore" class="text-3xl font-extrabold text-softblue-600">0</span>
+        </div>
+        <!-- Words Correct Card -->
+        <div class="bg-pastelgreen-100/40 border border-emerald-100 p-4 rounded-2xl text-center">
+          <span class="text-xs text-pastelgreen-500 font-bold uppercase tracking-wider block mb-1">Kata Benar</span>
+          <span id="resultCorrectWords" class="text-3xl font-extrabold text-pastelgreen-500">0</span>
+        </div>
+        <!-- Accuracy Card -->
+        <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-center">
+          <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Akurasi Ketik</span>
+          <span id="resultAccuracy" class="text-3xl font-extrabold text-slate-700">0%</span>
+        </div>
+        <!-- Highest Combo Card -->
+        <div class="bg-pastelorange-100/50 border border-orange-150 p-4 rounded-2xl text-center">
+          <span class="text-xs text-pastelorange-500 font-bold uppercase tracking-wider block mb-1">Combo Tertinggi</span>
+          <span id="resultMaxCombo" class="text-3xl font-extrabold text-pastelorange-500">x0</span>
+        </div>
+      </div>
+
+      <!-- Save to Leaderboard Section -->
+      <div class="bg-slate-50 border border-slate-200/65 p-5 rounded-2xl mb-8">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">Simpan Rekor Anda</h3>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input 
+            type="text" 
+            id="playerNameInput" 
+            maxlength="15"
+            placeholder="Masukkan Nama Anda..." 
+            class="flex-grow px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-softblue-400 text-sm"
+          />
+          <button id="saveScoreBtn" class="bg-softblue-500 hover:bg-softblue-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors shadow-md shadow-softblue-100 shrink-0">
+            Simpan Rekor
+          </button>
+        </div>
+        <p id="saveMessage" class="hidden text-xs text-pastelgreen-500 font-semibold mt-2"></p>
+      </div>
+
+      <!-- Navigation buttons -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button id="retryGameBtn" class="flex-1 bg-softblue-500 hover:bg-softblue-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-softblue-100 text-sm flex justify-center items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H19" />
+          </svg>
+          <span>Main Lagi</span>
+        </button>
+        <button id="backToHomeBtn" class="flex-1 bg-white border border-slate-200 text-slate-600 font-semibold py-3.5 rounded-xl hover:bg-slate-50 transition-all text-sm flex justify-center items-center space-x-2">
+          <span>Halaman Utama</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. LEADERBOARD SCREEN (HIDDEN BY DEFAULT) -->
+    <div id="leaderboardScreen" class="w-full max-w-xl bg-white rounded-3xl p-8 shadow-xl border border-slate-100/80 transition-all duration-300 hidden">
+      <div class="text-center mb-6">
+        <div class="inline-block bg-pastelorange-100 text-pastelorange-500 p-3 rounded-full mb-3">
+          🏆
+        </div>
+        <h2 class="text-2xl font-black text-slate-800">Papan Skor Tertinggi</h2>
+        <p class="text-slate-400 text-xs mt-1">Peringkat 10 pemain terbaik Team BLR Typing</p>
+      </div>
+
+      <!-- Leaderboard Table Container -->
+      <div class="border border-slate-100 rounded-2xl overflow-hidden mb-6 max-h-80 overflow-y-auto">
+        <table class="w-full text-left text-sm border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-slate-400 font-bold border-b border-slate-100">
+              <th class="py-3 px-4 text-center w-16">Rank</th>
+              <th class="py-3 px-4">Nama</th>
+              <th class="py-3 px-4 text-center">Level</th>
+              <th class="py-3 px-4 text-right">Skor</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTableBody">
+            <!-- Dynamic Leaderboard Data Inserted Here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-3">
+        <button id="clearLeaderboardBtn" class="bg-rose-50 hover:bg-rose-100/50 text-rose-500 font-bold px-4 py-3 rounded-xl text-xs transition-colors border border-rose-100">
+          Hapus Semua
+        </button>
+        <button id="closeLeaderboardBtn" class="flex-grow bg-softblue-500 hover:bg-softblue-600 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-md shadow-softblue-100 text-center">
+          Kembali
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-5xl mx-auto px-6 py-4 text-center text-xs text-slate-400 z-10">
+    <p>© 2026 Team BLR Typing. Dirancang untuk sarana latihan interaktif pelajar.</p>
+  </footer>
+
+  <!-- Application Logic Code -->
+  <script>
+    // --- AUDIO SYSTEM USING WEB AUDIO API (Offline Safe, No External Asset dependence) ---
+    const AudioEngine = {
+      ctx: null,
+      enabled: true,
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+
+      playStart() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+        notes.forEach((freq, index) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + index * 0.08);
+          gain.gain.setValueAtTime(0.12, now + index * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.08 + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + index * 0.08);
+          osc.stop(now + index * 0.08 + 0.25);
+        });
+      },
+
+      playTick(isCritical) {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        // Nada detak jam lebih nyaring dan bernada tinggi jika sisa waktu kritis (<= 8s)
+        osc.frequency.setValueAtTime(isCritical ? 1200 : 800, now);
+        gain.gain.setValueAtTime(isCritical ? 0.04 : 0.015, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      },
+
+      playCorrect() {
+        if (!this.enabled) return;
+        this.init();
+        
+        const now = this.ctx.currentTime;
+        // First Note
+        const osc1 = this.ctx.createOscillator();
+        const gain1 = this.ctx.createGain();
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(523.25, now); // C5
+        gain1.gain.setValueAtTime(0.15, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc1.connect(gain1);
+        gain1.connect(this.ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.15);
+
+        // Second Note (Higher pitch)
+        const osc2 = this.ctx.createOscillator();
+        const gain2 = this.ctx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(659.25, now + 0.08); // E5
+        gain2.gain.setValueAtTime(0.15, now + 0.08);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc2.connect(gain2);
+        gain2.connect(this.ctx.destination);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.25);
+      },
+
+      // NEW: Enhanced distinct Incorrect Typo sound (Instant buzz sound)
+      playIncorrect() {
+        if (!this.enabled) return;
+        this.init();
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140.00, now); // Low buzz
+        osc.frequency.linearRampToValueAtTime(100.00, now + 0.15); // Slide down
+        
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(500, now);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.15);
+      },
+
+      // NEW: Synthetic Explosion Bomb Sound (Noise mixed with a decaying low rumble)
+      playExplosion() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+
+        // 1. Transient Impact (The initial blast "THUD" - Made much louder)
+        const kickOsc = this.ctx.createOscillator();
+        const kickGain = this.ctx.createGain();
+        kickOsc.type = 'sine';
+        kickOsc.frequency.setValueAtTime(180, now);
+        kickOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.4); 
+        kickGain.gain.setValueAtTime(1.8, now); // Extremely loud punchy thud
+        kickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        kickOsc.connect(kickGain);
+        kickGain.connect(this.ctx.destination);
+        kickOsc.start(now);
+        kickOsc.stop(now + 0.5);
+
+        // 2. White Noise for the explosion blast (Loud debris sound)
+        const bufferSize = this.ctx.sampleRate * 1.5; // Longer duration
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const noiseFilter = this.ctx.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.setValueAtTime(450, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(10, now + 1.2);
+
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(1.5, now); // Significantly boosted noise blast
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+        noise.start(now);
+        noise.stop(now + 1.5);
+
+        // 3. Heavy Sub-Bass Rumble
+        const osc = this.ctx.createOscillator();
+        const oscGain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, now);
+        osc.frequency.linearRampToValueAtTime(15, now + 0.9);
+
+        oscGain.gain.setValueAtTime(1.6, now); // Massive bass rumble volume
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+
+        const oscFilter = this.ctx.createBiquadFilter();
+        oscFilter.type = 'lowpass';
+        oscFilter.frequency.setValueAtTime(140, now);
+
+        osc.connect(oscFilter);
+        oscFilter.connect(oscGain);
+        oscGain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 1.2);
+      },
+
+      playGameOver() {
+        if (!this.enabled) return;
+        this.init();
+
+        const now = this.ctx.currentTime;
+        const notes = [293.66, 261.63, 220.00, 196.00]; // D4 -> C4 -> A3 -> G3
+        notes.forEach((freq, index) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + index * 0.15);
+          
+          gain.gain.setValueAtTime(0.15, now + index * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.15 + 0.3);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start(now + index * 0.15);
+          osc.stop(now + index * 0.15 + 0.30);
+        });
+      }
+    };
+
+    // --- GAME DATA (Easy, kid-friendly vocabulary lists) ---
+    const defaultVocabularyList = [
+      // Easy level (3 to 5 letters, very common primary school words)
+      { word: "Book", indonesian: "Buku", difficulty: "easy" },
+      { word: "Pen", indonesian: "Pena", difficulty: "easy" },
+      { word: "Sun", indonesian: "Matahari", difficulty: "easy" },
+      { word: "Star", indonesian: "Bintang", difficulty: "easy" },
+      { word: "Milk", indonesian: "Susu", difficulty: "easy" },
+      { word: "Fish", indonesian: "Ikan", difficulty: "easy" },
+      { word: "Tree", indonesian: "Pohon", difficulty: "easy" },
+      { word: "Cat", indonesian: "Kucing", difficulty: "easy" },
+      { word: "Cake", indonesian: "Kue", difficulty: "easy" },
+      { word: "Blue", indonesian: "Biru", difficulty: "easy" },
+      { word: "Apple", indonesian: "Apel", difficulty: "easy" },
+      { word: "Ball", indonesian: "Bola", difficulty: "easy" },
+      
+      // Medium level (Slightly longer but simple familiar objects)
+      { word: "School", indonesian: "Sekolah", difficulty: "medium" },
+      { word: "Computer", indonesian: "Komputer", difficulty: "medium" },
+      { word: "Keyboard", indonesian: "Papan Ketik", difficulty: "medium" },
+      { word: "Internet", indonesian: "Internet", difficulty: "medium" },
+      { word: "Mountain", indonesian: "Gunung", difficulty: "medium" },
+      { word: "Butterfly", indonesian: "Kupu-kupu", difficulty: "medium" },
+      { word: "Notebook", indonesian: "Buku Catatan", difficulty: "medium" },
+      { word: "Elephant", indonesian: "Gajah", difficulty: "medium" },
+      { word: "Universe", indonesian: "Semesta", difficulty: "medium" },
+      { word: "Friendship", indonesian: "Persahabatan", difficulty: "medium" },
+
+      // Hard level (More challenging, longer educational concepts)
+      { word: "Language", indonesian: "Bahasa", difficulty: "hard" },
+      { word: "Beautiful", indonesian: "Indah / Cantik", difficulty: "hard" },
+      { word: "Wonderful", indonesian: "Mengagumkan", difficulty: "hard" },
+      { word: "Education", indonesian: "Pendidikan", difficulty: "hard" },
+      { word: "Technology", indonesian: "Teknologi", difficulty: "hard" },
+      { word: "Programming", indonesian: "Pemrograman", difficulty: "hard" },
+      { word: "Adventure", indonesian: "Petualangan", difficulty: "hard" },
+      { word: "Happiness", indonesian: "Kebahagiaan", difficulty: "hard" },
+      { word: "Chocolate", indonesian: "Cokelat", difficulty: "hard" }
+    ];
+
+    // List of kid-friendly motivational quotes
+    const motivationalQuotes = [
+      "\"Setiap ketukan jarimu adalah langkah awal untuk menguasai bahasa baru! Semangat!\" 💪",
+      "\"Jangan takut salah ketik, setiap kesalahan adalah guru terbaik untuk jemari lincahmu!\" ⚡",
+      "\"Fokus, rileks, dan rasakan betapa serunya belajar kata baru hari ini!\" 🚀",
+      "\"Kecepatan mengetik datang dari latihan konsisten. Kamu pasti bisa, ayo dicoba!\" 🎓",
+      "\"Practice makes perfect! Jemari yang rajin berlatih akan menghasilkan akurasi yang luar biasa!\" 🌟",
+      "\"Belajar bahasa Inggris kini jauh lebih seru! Mari taklukkan tantangan kata demi kata!\" 🦉",
+      "\"Fokus pada akurasi terlebih dahulu, kecepatan tinggi akan mengikutimu secara alami!\" 🎯"
+    ];
+
+    // Load vocabulary from localStorage if available, otherwise use default
+    let vocabularyList = JSON.parse(localStorage.getItem('typing_race_custom_words')) || defaultVocabularyList;
+
+    // --- GAME STATE ---
+    let selectedDifficulty = 'medium'; // Default
+    let selectedGameMode = 'classic'; // Default mode ('classic', 'shoot', 'puzzle')
+    let gameActive = false;
+    let timerDuration = 45; // Default for medium
+    let timeRemaining = 45;
+    let timerInterval = null;
+    
+    let currentWordsPool = [];
+    let currentWordObj = null;
+    let score = 0;
+    
+    // Stats trackers
+    let totalCorrectWords = 0;
+    let totalKeystrokes = 0;
+    let correctKeystrokes = 0;
+    let currentCombo = 0;
+    let highestCombo = 0;
+
+    // Game Mode: Shoot Word variables
+    let shootFallInterval = null;
+    let shootTopPercent = 0;
+    let shootSpeed = 1.0; // falling speed multiplier based on difficulty
+    let shootMissedCount = 0;
+    const shootMaxMisses = 3;
+
+    // Game Mode: Puzzle Word variables
+    let puzzleScrambledWord = "";
+
+    // --- DOM ELEMENTS ---
+    const roomSelectionScreen = document.getElementById('roomSelectionScreen');
+    const homeScreen = document.getElementById('homeScreen');
+    const adminScreen = document.getElementById('adminScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const leaderboardScreen = document.getElementById('leaderboardScreen');
+
+    const gameScore = document.getElementById('gameScore');
+    const comboContainer = document.getElementById('comboContainer');
+    const comboMultiplier = document.getElementById('comboMultiplier');
+    const gameLevelBadge = document.getElementById('gameLevelBadge');
+    const gameTimerText = document.getElementById('gameTimerText');
+    const gameTimerBar = document.getElementById('gameTimerBar');
+    
+    // Dynamic Mode Play Areas
+    const classicPlayArea = document.getElementById('classicPlayArea');
+    const shootPlayArea = document.getElementById('shootPlayArea');
+    const puzzlePlayArea = document.getElementById('puzzlePlayArea');
+
+    // Classic Elements
+    const wordViewer = document.getElementById('wordViewer');
+    const wordTranslation = document.getElementById('wordTranslation');
+
+    // Shoot World Elements
+    const fallingWordContainer = document.getElementById('fallingWordContainer');
+    const shootMissedText = document.getElementById('shootMissedText');
+
+    // Puzzle World Elements
+    const puzzleWordMeaning = document.getElementById('puzzleWordMeaning');
+    const scrambledBubbles = document.getElementById('scrambledBubbles');
+    const puzzleWordProgress = document.getElementById('puzzleWordProgress');
+
+    // Input Area
+    const typingInputField = document.getElementById('typingInputField');
+    const inputWrapper = document.getElementById('inputWrapper');
+
+    // Real-time quick stats
+    const quickWordsCorrect = document.getElementById('quickWordsCorrect');
+    const quickAccuracy = document.getElementById('quickAccuracy');
+    const quickMaxCombo = document.getElementById('quickMaxCombo');
+
+    // Game Over result stats
+    const resultScore = document.getElementById('resultScore');
+    const resultCorrectWords = document.getElementById('resultCorrectWords');
+    const resultAccuracy = document.getElementById('resultAccuracy');
+    const resultMaxCombo = document.getElementById('resultMaxCombo');
+    const playerNameInput = document.getElementById('playerNameInput');
+    const saveScoreBtn = document.getElementById('saveScoreBtn');
+    const saveMessage = document.getElementById('saveMessage');
+
+    // Buttons & Interactivity
+    const toPlayerRoomBtn = document.getElementById('toPlayerRoomBtn');
+    const toAdminRoomBtn = document.getElementById('toAdminRoomBtn');
+    const backToRoomsFromHomeBtn = document.getElementById('backToRoomsFromHomeBtn');
+    const backToRoomsFromAdminBtn = document.getElementById('backToRoomsFromAdminBtn');
+
+    const startGameBtn = document.getElementById('startGameBtn');
+    const showLeaderboardBtn = document.getElementById('showLeaderboardBtn');
+    const retryGameBtn = document.getElementById('retryGameBtn');
+    const backToHomeBtn = document.getElementById('backToHomeBtn');
+    const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+    const clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    const audioIcon = document.getElementById('audioIcon');
+    const audioText = document.getElementById('audioText');
+    const leaderboardTableBody = document.getElementById('leaderboardTableBody');
+
+    // Word Count Indicators
+    const homeWordCount = document.getElementById('homeWordCount');
+    const adminWordCount = document.getElementById('adminWordCount');
+
+    // Admin Room specific elements
+    const addWordForm = document.getElementById('addWordForm');
+    const adminWordInput = document.getElementById('adminWordInput');
+    const adminIndoInput = document.getElementById('adminIndoInput');
+    const adminLevelSelect = document.getElementById('adminLevelSelect');
+    const adminWordsTableBody = document.getElementById('adminWordsTableBody');
+    const resetWordsBtn = document.getElementById('resetWordsBtn');
+    
+    // File Upload Elements
+    const adminFileUploadInput = document.getElementById('adminFileUploadInput');
+    const uploadStatusMessage = document.getElementById('uploadStatusMessage');
+
+    // Exit Button Element
+    const exitGameBtn = document.getElementById('exitGameBtn');
+
+    // Motivational Quote Element
+    const motivationalQuote = document.getElementById('motivationalQuote');
+
+    // Profile Photo Elements
+    const profileImageInput = document.getElementById('profileImageInput');
+    const defaultAvatarIcon = document.getElementById('defaultAvatarIcon');
+    const userProfileImage = document.getElementById('userProfileImage');
+
+    // --- INITIALIZE FLOATING BUBBLES ---
+    function initBubbles() {
+      const container = document.getElementById('bgAnimation');
+      container.innerHTML = '';
+      const numberOfBubbles = 10;
+      for (let i = 0; i < numberOfBubbles; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bg-bubble';
+        
+        // Randomize bubble properties
+        const size = Math.random() * 80 + 40; // 40px - 120px
+        const left = Math.random() * 100; // 0% - 100%
+        const delay = Math.random() * 8; // delay 0s - 8s
+        const duration = Math.random() * 15 + 10; // duration 10s - 25s
+
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.left = `${left}%`;
+        bubble.style.animationDelay = `${delay}s`;
+        bubble.style.animationDuration = `${duration}s`;
+        
+        container.appendChild(bubble);
+      }
+    }
+
+    // --- RANDOM MOTIVATIONAL QUOTE GENERATOR ---
+    function generateRandomQuote() {
+      if (motivationalQuote) {
+        const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
+        motivationalQuote.textContent = motivationalQuotes[randomIndex];
+      }
+    }
+
+    // --- SELECT GAME MODE ---
+    function selectGameMode(mode) {
+      selectedGameMode = mode;
+      
+      // Update UI active styling
+      const modes = ['classic', 'shoot', 'puzzle'];
+      modes.forEach(m => {
+        const btn = document.getElementById(`modeBtn-${m}`);
+        if (m === mode) {
+          btn.className = "flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-softblue-500 bg-softblue-50/50 transition-all duration-200 group text-center";
+          btn.querySelector('span.font-bold').className = "font-bold text-xs text-softblue-600";
+        } else {
+          btn.className = "flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-slate-100 bg-white hover:border-softblue-400 transition-all duration-200 group text-center";
+          btn.querySelector('span.font-bold').className = "font-bold text-xs text-slate-700 group-hover:text-softblue-500";
+        }
+      });
+    }
+
+    // --- SELECTION OF LEVEL ---
+    function selectLevel(level) {
+      selectedDifficulty = level;
+      
+      // Update UI buttons styling
+      document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.className = "level-btn flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-slate-300 transition-all duration-200 group";
+        // Reset subtexts colors
+        const labelText = btn.querySelector('.font-bold');
+        labelText.className = "font-bold text-slate-800";
+      });
+
+      const selectedBtn = document.getElementById(`levelBtn-${level}`);
+      if (level === 'easy') {
+        selectedBtn.className = "level-btn flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-pastelgreen-400 bg-emerald-50/40 transition-all duration-200 group";
+        selectedBtn.querySelector('.font-bold').className = "font-bold text-pastelgreen-500";
+        timerDuration = 60;
+        // Much slower and comfortable falling speeds
+        shootSpeed = 0.3; 
+      } else if (level === 'medium') {
+        selectedBtn.className = "level-btn flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-softblue-500 bg-softblue-50/50 transition-all duration-200 group";
+        selectedBtn.querySelector('.font-bold').className = "font-bold text-softblue-600";
+        timerDuration = 45;
+        // Balanced falling speed for moderate fun
+        shootSpeed = 0.5;
+      } else if (level === 'hard') {
+        selectedBtn.className = "level-btn flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-pastelred-400 bg-rose-50/40 transition-all duration-200 group";
+        selectedBtn.querySelector('.font-bold').className = "font-bold text-pastelred-500";
+        timerDuration = 30;
+        // Active but doable and fair falling speed
+        shootSpeed = 0.8;
+      }
+    }
+
+    // --- SCREEN NAVIGATION MANAGER ---
+    function showScreen(screenToShow) {
+      const screens = [roomSelectionScreen, homeScreen, adminScreen, gameScreen, gameOverScreen, leaderboardScreen];
+      screens.forEach(screen => {
+        if (screen === screenToShow) {
+          screen.classList.remove('hidden');
+          // Smooth entry effect
+          screen.classList.add('animate-pop');
+          setTimeout(() => screen.classList.remove('animate-pop'), 350);
+        } else {
+          screen.classList.add('hidden');
+        }
+      });
+    }
+
+    // --- GAME ENGINE SETUP ---
+    function prepareWordPool() {
+      // Filter words based on selected difficulty
+      // If none or low count, fallback with general words
+      currentWordsPool = vocabularyList.filter(w => w.difficulty === selectedDifficulty);
+      
+      // Shuffle the pool using Fisher-Yates
+      for (let i = currentWordsPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentWordsPool[i], currentWordsPool[j]] = [currentWordsPool[j], currentWordsPool[i]];
+      }
+    }
+
+    // Unscramble / Anagram Generator for Puzzle Mode
+    function scrambleWord(word) {
+      let arr = word.toUpperCase().split('');
+      // Keep shuffling until the scrambled word is actually different
+      let attempts = 0;
+      while (attempts < 10) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        if (arr.join('') !== word.toUpperCase()) {
+          break;
+        }
+        attempts++;
+      }
+      return arr.join('');
+    }
+
+    // Picks and displays the next translation puzzle based on Game Mode
+    function pickNextWord() {
+      const validPool = vocabularyList.filter(w => w.difficulty === selectedDifficulty);
+      if (validPool.length === 0) {
+        alert(`Opps! Tidak ada kosakata untuk level ${selectedDifficulty.toUpperCase()} di database. Admin perlu menambahkannya terlebih dahulu!`);
+        endGame();
+        return;
+      }
+
+      if (currentWordsPool.length === 0) {
+        prepareWordPool();
+      }
+      
+      currentWordObj = currentWordsPool.pop();
+      typingInputField.value = '';
+
+      // Activate sub play areas according to the selected mode
+      classicPlayArea.classList.add('hidden');
+      shootPlayArea.classList.add('hidden');
+      puzzlePlayArea.classList.add('hidden');
+
+      if (selectedGameMode === 'classic') {
+        classicPlayArea.classList.remove('hidden');
+        wordViewer.textContent = currentWordObj.indonesian;
+        renderWordViewer();
+      } 
+      else if (selectedGameMode === 'shoot') {
+        shootPlayArea.classList.remove('hidden');
+        
+        // Dynamic Multi-Shape generation (Circle, Triangle, Star)
+        const shapes = ['circle', 'triangle', 'star'];
+        const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+        
+        // Dynamic font-size scaling based on word length to ensure perfect readability
+        const textLen = currentWordObj.indonesian.length;
+        let fontSizeClass = "text-base sm:text-lg";
+        if (textLen > 12) {
+          fontSizeClass = "text-[10px] sm:text-xs";
+        } else if (textLen > 8) {
+          fontSizeClass = "text-xs sm:text-sm";
+        }
+        
+        let shapeHtml = '';
+        if (randomShape === 'circle') {
+          shapeHtml = `
+            <div class="relative w-36 h-36 flex flex-col items-center justify-center bg-gradient-to-tr from-softblue-500 to-indigo-600 rounded-full border-4 border-white shadow-xl animate-pop px-3">
+                <span class="${fontSizeClass} font-black text-white text-center leading-tight break-words max-w-full">${currentWordObj.indonesian}</span>
+                <span class="text-[9px] uppercase font-bold tracking-widest text-softblue-100 mt-1.5">Ketik Artinya!</span>
+            </div>
+          `;
+        } else if (randomShape === 'triangle') {
+          shapeHtml = `
+            <div class="relative w-40 h-40 flex items-end justify-center pb-6 bg-gradient-to-b from-pastelorange-500 to-amber-600 border-white shadow-xl animate-pop" style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%);">
+                <div class="flex flex-col items-center text-white z-10 text-center px-4 pb-2 max-w-[120px]">
+                    <span class="${fontSizeClass} font-black leading-tight break-words">${currentWordObj.indonesian}</span>
+                    <span class="text-[8px] uppercase font-bold tracking-widest text-orange-100 mt-1">Ketik Artinya!</span>
+                </div>
+            </div>
+          `;
+        } else { // star
+          shapeHtml = `
+            <div class="relative w-40 h-40 flex items-center justify-center animate-pop">
+                <svg class="absolute inset-0 w-full h-full drop-shadow-lg" viewBox="0 0 24 24" fill="url(#starGrad)" stroke="white" stroke-width="0.5">
+                    <defs>
+                        <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#EC4899" />
+                            <stop offset="100%" stop-color="#8B5CF6" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M12 .587l3.668 7.431 8.2 1.191-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.209l8.2-1.191L12 .587z"/>
+                </svg>
+                <div class="relative z-10 flex flex-col items-center text-white text-center px-5 max-w-[100px]">
+                    <span class="${fontSizeClass} font-black leading-tight break-words">${currentWordObj.indonesian}</span>
+                    <span class="text-[8px] uppercase font-extrabold tracking-widest text-pink-100 mt-1">Ketik!</span>
+                </div>
+            </div>
+          `;
+        }
+        fallingWordContainer.innerHTML = shapeHtml;
+        
+        // Reset falling position & start falling timer
+        shootTopPercent = 0;
+        fallingWordContainer.style.top = '0%';
+        startShootFalling();
+      } 
+      else if (selectedGameMode === 'puzzle') {
+        puzzlePlayArea.classList.remove('hidden');
+        puzzleWordMeaning.textContent = currentWordObj.indonesian;
+        
+        // Generate scrambled letter bubbles
+        puzzleScrambledWord = scrambleWord(currentWordObj.word);
+        scrambledBubbles.innerHTML = '';
+        for (let char of puzzleScrambledWord) {
+          const bubble = document.createElement('div');
+          bubble.className = "w-10 h-10 flex items-center justify-center bg-softblue-100 border-2 border-softblue-300 text-softblue-700 font-extrabold rounded-xl text-base shadow-sm transform hover:scale-105 transition-all select-none animate-pop";
+          bubble.textContent = char;
+          scrambledBubbles.appendChild(bubble);
+        }
+
+        renderWordViewer();
+      }
+    }
+
+    // Renders the typing progress/placeholders underneath the question (For Classic & Puzzle modes)
+    function renderWordViewer() {
+      if (!currentWordObj) return;
+
+      const targetWord = currentWordObj.word;
+      const typedVal = typingInputField.value;
+      const renderContainer = (selectedGameMode === 'puzzle') ? puzzleWordProgress : wordTranslation;
+      renderContainer.innerHTML = '';
+
+      for (let i = 0; i < targetWord.length; i++) {
+        const charSpan = document.createElement('span');
+        
+        if (i < typedVal.length) {
+          charSpan.textContent = targetWord[i];
+          if (typedVal[i].toLowerCase() === targetWord[i].toLowerCase()) {
+            charSpan.className = "text-pastelgreen-500 font-extrabold border-b-2 border-pastelgreen-500 px-0.5";
+          } else {
+            charSpan.className = "text-pastelred-500 font-extrabold border-b-2 border-pastelred-500 px-0.5";
+          }
+        } else {
+          charSpan.textContent = "_";
+          charSpan.className = "text-slate-300 font-bold px-0.5";
+        }
+        renderContainer.appendChild(charSpan);
+      }
+    }
+
+    // --- SHOOT MODE FALLING ANIMATION TIMER ---
+    function startShootFalling() {
+      if (shootFallInterval) clearInterval(shootFallInterval);
+
+      shootFallInterval = setInterval(() => {
+        if (!gameActive) {
+          clearInterval(shootFallInterval);
+          return;
+        }
+
+        shootTopPercent += 1.5 * shootSpeed;
+        fallingWordContainer.style.top = `${shootTopPercent}%`;
+
+        // Check if word hits the bottom (reaches 80% boundary of container height)
+        if (shootTopPercent >= 80) {
+          clearInterval(shootFallInterval);
+          processShootWordMiss();
+        }
+      }, 100);
+    }
+
+    // Trigger strong shake effect to the game interface cards
+    function triggerAppHeavyShake() {
+      const container = document.getElementById('gameScreen');
+      container.classList.add('animate-heavy-shake', 'border-pastelred-500');
+      
+      // Flash red highlight boundary line as visual explosion feedback
+      setTimeout(() => {
+        container.classList.remove('animate-heavy-shake', 'border-pastelred-500');
+      }, 500);
+    }
+
+    // When the falling word is not typed in time in Shoot Mode
+    function processShootWordMiss() {
+      shootMissedCount++;
+      shootMissedText.textContent = `Terlewat: ${shootMissedCount}/${shootMaxMisses}`;
+      
+      // Play explosion sound effect & trigger powerful container shake
+      AudioEngine.playExplosion();
+      triggerAppHeavyShake();
+
+      if (shootMissedCount >= shootMaxMisses) {
+        endGame();
+      } else {
+        pickNextWord();
+      }
+    }
+
+    // --- INPUT EVENT HANDLER ---
+    function handleTypingInput(e) {
+      if (!gameActive) return;
+
+      const typedVal = typingInputField.value;
+      const targetWord = currentWordObj.word;
+      
+      totalKeystrokes++;
+
+      // Check if current typed prefix matches
+      const isCorrectPrefix = targetWord.toLowerCase().startsWith(typedVal.toLowerCase());
+      
+      if (isCorrectPrefix) {
+        correctKeystrokes++;
+        
+        if (selectedGameMode === 'classic' || selectedGameMode === 'puzzle') {
+          renderWordViewer();
+        }
+        
+        // Exact full match typed successfully
+        if (typedVal.toLowerCase() === targetWord.toLowerCase()) {
+          if (selectedGameMode === 'shoot') {
+            clearInterval(shootFallInterval);
+          }
+          processCorrectWord();
+        }
+      } else {
+        triggerMistakeEffect();
+        typingInputField.value = typedVal.slice(0, -1);
+        
+        if (selectedGameMode === 'classic' || selectedGameMode === 'puzzle') {
+          renderWordViewer();
+        }
+      }
+
+      // Update Quick real-time statistics
+      updateQuickStats();
+    }
+
+    // Trigger visual shake when mistyped
+    function triggerMistakeEffect() {
+      // Plays the custom incorrect buzz sound automatically
+      AudioEngine.playIncorrect();
+      inputWrapper.classList.add('animate-shake');
+      typingInputField.classList.add('border-pastelred-400', 'bg-pastelred-100/10');
+      
+      setTimeout(() => {
+        inputWrapper.classList.remove('animate-shake');
+        typingInputField.classList.remove('border-pastelred-400', 'bg-pastelred-100/10');
+      }, 400);
+
+      currentCombo = 0;
+      updateComboUI();
+    }
+
+    // When the correct word is successfully verified
+    function processCorrectWord() {
+      AudioEngine.playCorrect();
+      
+      // Calculate Score depending on Level Difficulty, Game Mode, and active Combo multiplier
+      let basePoints = 10;
+      if (selectedDifficulty === 'medium') basePoints = 15;
+      if (selectedDifficulty === 'hard') basePoints = 25;
+
+      // Bonus score multiplier for extra action challenge in Shoot/Puzzle Modes
+      let modeBonus = 1.0;
+      if (selectedGameMode === 'shoot') modeBonus = 1.3;
+      if (selectedGameMode === 'puzzle') modeBonus = 1.5;
+
+      let multiplier = 1;
+      if (currentCombo >= 15) multiplier = 5;
+      else if (currentCombo >= 8) multiplier = 3;
+      else if (currentCombo >= 3) multiplier = 2;
+
+      const pointsEarned = Math.round(basePoints * multiplier * modeBonus);
+      score += pointsEarned;
+      
+      totalCorrectWords++;
+      currentCombo++;
+      if (currentCombo > highestCombo) {
+        highestCombo = currentCombo;
+      }
+
+      // Quick flash green to typing input area for success feedback
+      typingInputField.classList.add('border-pastelgreen-400', 'bg-pastelgreen-100/20');
+      setTimeout(() => {
+        typingInputField.classList.remove('border-pastelgreen-400', 'bg-pastelgreen-100/20');
+      }, 300);
+
+      // Refresh score UI
+      gameScore.textContent = score;
+      updateComboUI();
+
+      // Proceed to the next word
+      pickNextWord();
+    }
+
+    // --- COMBO UI UPDATE ---
+    function updateComboUI() {
+      if (currentCombo >= 3) {
+        comboContainer.classList.remove('hidden');
+        comboContainer.classList.add('animate-pop');
+        setTimeout(() => comboContainer.classList.remove('animate-pop'), 300);
+        
+        let multiplierText = 'x2';
+        if (currentCombo >= 15) {
+          multiplierText = 'x5';
+          comboContainer.className = "flex items-center space-x-1.5 bg-rose-100 text-rose-500 px-3.5 py-1.5 rounded-2xl border border-rose-200";
+        } else if (currentCombo >= 8) {
+          multiplierText = 'x3';
+          comboContainer.className = "flex items-center space-x-1.5 bg-amber-100 text-amber-500 px-3.5 py-1.5 rounded-2xl border border-amber-200";
+        } else {
+          comboContainer.className = "flex items-center space-x-1.5 bg-softblue-50 text-softblue-500 px-3.5 py-1.5 rounded-2xl border border-softblue-100";
+        }
+        
+        comboMultiplier.textContent = multiplierText;
+      } else {
+        comboContainer.classList.add('hidden');
+      }
+    }
+
+    // --- STATISTICS UPDATE ---
+    function calculateAccuracy() {
+      if (totalKeystrokes === 0) return 100;
+      return Math.min(Math.round((correctKeystrokes / totalKeystrokes) * 100), 100);
+    }
+
+    // Update real-time stats
+    function updateQuickStats() {
+      quickWordsCorrect.textContent = totalCorrectWords;
+      quickAccuracy.textContent = `${calculateAccuracy()}%`;
+      quickMaxCombo.textContent = `x${highestCombo}`;
+    }
+
+    // --- GAME TIMER ---
+    function startTimer() {
+      timeRemaining = timerDuration;
+      updateTimerUI();
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerUI();
+        
+        // Memainkan efek detak suara jam berjalan di latar belakang setiap detik
+        if (gameActive && timeRemaining > 0) {
+          AudioEngine.playTick(timeRemaining <= 8);
+        }
+
+        if (timeRemaining <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      gameTimerText.textContent = `${timeRemaining}s`;
+      const percentage = (timeRemaining / timerDuration) * 100;
+      gameTimerBar.style.width = `${percentage}%`;
+
+      // Change timer color to red when critically low
+      if (timeRemaining <= 8) {
+        gameTimerBar.classList.remove('bg-softblue-500');
+        gameTimerBar.classList.add('bg-pastelred-500');
+        gameTimerText.className = "text-sm font-bold text-pastelred-500 animate-pulse";
+      } else {
+        gameTimerBar.classList.add('bg-softblue-500');
+        gameTimerBar.classList.remove('bg-pastelred-500');
+        gameTimerText.className = "text-sm font-bold text-slate-700";
+      }
+    }
+
+    // --- GAME STATE ACTIONS (START, END, RESTART, EXIT) ---
+    function startGame() {
+      const validPool = vocabularyList.filter(w => w.difficulty === selectedDifficulty);
+      if (validPool.length === 0) {
+        alert(`Opps! Tidak ada kosakata untuk level ${selectedDifficulty.toUpperCase()} di database. Admin perlu menambahkannya terlebih dahulu!`);
+        return;
+      }
+
+      gameActive = true;
+      score = 0;
+      totalCorrectWords = 0;
+      totalKeystrokes = 0;
+      correctKeystrokes = 0;
+      currentCombo = 0;
+      highestCombo = 0;
+      shootMissedCount = 0;
+
+      // Update Shoot Missed Indicator UI
+      shootMissedText.textContent = `Terlewat: 0/${shootMaxMisses}`;
+
+      // Memainkan efek suara saat permainan dimulai
+      AudioEngine.playStart();
+
+      // Prepare UI states
+      gameScore.textContent = "0";
+      gameLevelBadge.textContent = `${selectedDifficulty.toUpperCase()} - ${selectedGameMode.toUpperCase()}`;
+      if (selectedDifficulty === 'easy') {
+        gameLevelBadge.className = "inline-block mt-1 px-3 py-1 text-xs font-extrabold rounded-full bg-emerald-50 text-pastelgreen-500 border border-emerald-100";
+      } else if (selectedDifficulty === 'medium') {
+        gameLevelBadge.className = "inline-block mt-1 px-3 py-1 text-xs font-extrabold rounded-full bg-softblue-50 text-softblue-600 border border-softblue-100";
+      } else if (selectedDifficulty === 'hard') {
+        gameLevelBadge.className = "inline-block mt-1 px-3 py-1 text-xs font-extrabold rounded-full bg-rose-50 text-pastelred-500 border border-rose-100";
+      }
+
+      comboContainer.classList.add('hidden');
+      updateQuickStats();
+      
+      // Generate Word Data
+      prepareWordPool();
+      pickNextWord();
+
+      // Show Board & Set Focus
+      showScreen(gameScreen);
+      setTimeout(() => typingInputField.focus(), 400);
+
+      // Start Countdown
+      startTimer();
+    }
+
+    // --- ENTRANCE PROFILE PICTURE LOADING ---
+    function applyUserProfileImage(base64Data) {
+      if (base64Data) {
+        userProfileImage.src = base64Data;
+        userProfileImage.classList.remove('hidden');
+        defaultAvatarIcon.classList.add('hidden');
+      } else {
+        userProfileImage.src = "";
+        userProfileImage.classList.add('hidden');
+        defaultAvatarIcon.classList.remove('hidden');
+      }
+    }
+
+    function loadUserProfile() {
+      const savedProfile = localStorage.getItem('typing_race_user_profile');
+      if (savedProfile) {
+        applyUserProfileImage(savedProfile);
+      }
+    }
+
+    // Menghentikan permainan dan kembali ke beranda seketika saat tombol keluar diklik
+    function exitGame() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      if (shootFallInterval) clearInterval(shootFallInterval);
+      typingInputField.value = '';
+      showScreen(homeScreen);
+    }
+
+    // --- END GAME ---
+    function endGame() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      if (shootFallInterval) clearInterval(shootFallInterval);
+      AudioEngine.playGameOver();
+
+      // Set Game Over screen metrics
+      resultScore.textContent = score;
+      resultCorrectWords.textContent = totalCorrectWords;
+      resultAccuracy.textContent = `${calculateAccuracy()}%`;
+      resultMaxCombo.textContent = `x${highestCombo}`;
+
+      // Reset save state UI
+      saveMessage.classList.add('hidden');
+      playerNameInput.value = '';
+      playerNameInput.disabled = false;
+      saveScoreBtn.disabled = false;
+
+      showScreen(gameOverScreen);
+    }
+
+    // --- LEADERBOARD & LOCAL STORAGE ---
+    function saveRecord() {
+      const name = playerNameInput.value.trim();
+      if (!name) {
+        alert("Harap masukkan nama terlebih dahulu!");
+        return;
+      }
+
+      const record = {
+        name: name,
+        score: score,
+        level: `${selectedDifficulty} (${selectedGameMode})`,
+        date: new Date().toLocaleDateString('id-ID')
+      };
+
+      // Retrieve previous records
+      let leaderboards = JSON.parse(localStorage.getItem('typing_race_scores')) || [];
+      leaderboards.push(record);
+      
+      // Sort desc based on Score
+      leaderboards.sort((a, b) => b.score - a.score);
+      // Keep top 10
+      leaderboards = leaderboards.slice(0, 10);
+
+      localStorage.setItem('typing_race_scores', JSON.stringify(leaderboards));
+
+      // Visual success response
+      saveMessage.textContent = "✓ Rekor berhasil disimpan ke Leaderboard!";
+      saveMessage.classList.remove('hidden');
+      playerNameInput.disabled = true;
+      saveScoreBtn.disabled = true;
+    }
+
+    function renderLeaderboard() {
+      const leaderboards = JSON.parse(localStorage.getItem('typing_race_scores')) || [];
+      leaderboardTableBody.innerHTML = '';
+
+      if (leaderboards.length === 0) {
+        leaderboardTableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-8 text-center text-slate-400 font-medium">Belum ada rekor yang disimpan. Jadilah yang pertama!</td>
+          </tr>
+        `;
+        return;
+      }
+
+      leaderboards.forEach((record, index) => {
+        let medal = '';
+        if (index === 0) medal = '🥇';
+        else if (index === 1) medal = '🥈';
+        else if (index === 2) medal = '🥉';
+        else medal = index + 1;
+
+        // Custom Difficulty Badge inside table
+        let levelColor = 'text-slate-500 bg-slate-50 border-slate-100';
+        if (record.level.includes('easy')) levelColor = 'text-emerald-500 bg-emerald-50/50 border-emerald-100';
+        else if (record.level.includes('medium')) levelColor = 'text-softblue-500 bg-softblue-50 border-softblue-100';
+        else if (record.level.includes('hard')) levelColor = 'text-rose-500 bg-rose-50 border-rose-100';
+
+        const row = document.createElement('tr');
+        row.className = "border-b border-slate-100 hover:bg-slate-50/50 transition-colors";
+        row.innerHTML = `
+          <td class="py-3 px-4 text-center font-bold text-slate-600">${medal}</td>
+          <td class="py-3 px-4 font-semibold text-slate-700">${record.name}</td>
+          <td class="py-3 px-4 text-center">
+            <span class="inline-block text-[10px] px-2 py-0.5 rounded-full border ${levelColor} font-bold uppercase">${record.level}</span>
+          </td>
+          <td class="py-3 px-4 text-right font-extrabold text-softblue-600">${record.score}</td>
+        `;
+        leaderboardTableBody.appendChild(row);
+      });
+    }
+
+    function clearLeaderboard() {
+      localStorage.removeItem('typing_race_scores');
+      renderLeaderboard();
+    }
+
+    // --- TOGGLE SOUND PREFERENCE ---
+    function toggleAudio() {
+      AudioEngine.enabled = !AudioEngine.enabled;
+      if (AudioEngine.enabled) {
+        audioIcon.textContent = '🔊';
+        audioText.textContent = 'Suara: On';
+      } else {
+        audioIcon.textContent = '🔇';
+        audioText.textContent = 'Suara: Off';
+      }
+    }
+
+    // --- ADMIN ROOM WORDS MANAGEMENT ---
+    function saveWordsToLocalStorage() {
+      localStorage.setItem('typing_race_custom_words', JSON.stringify(vocabularyList));
+      updateCounts();
+    }
+
+    // Update Counts Indicators
+    function updateCounts() {
+      const len = vocabularyList.length;
+      homeWordCount.textContent = `${len} Kata Bahasa Inggris Pilihan`;
+      adminWordCount.textContent = len;
+    }
+
+    function renderAdminWordsTable() {
+      adminWordsTableBody.innerHTML = '';
+      if (vocabularyList.length === 0) {
+        adminWordsTableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-6 text-center text-slate-400 font-semibold">Tidak ada kata di database. Silakan tambah kata baru!</td>
+          </tr>
+        `;
+        return;
+      }
+
+      vocabularyList.forEach((item, index) => {
+        let levelColor = '';
+        if (item.difficulty === 'easy') levelColor = 'text-emerald-500 bg-emerald-50 border-emerald-100';
+        else if (item.difficulty === 'medium') levelColor = 'text-softblue-500 bg-softblue-50 border-softblue-100';
+        else if (item.difficulty === 'hard') levelColor = 'text-rose-500 bg-rose-50 border-rose-100';
+
+        const row = document.createElement('tr');
+        row.className = "border-b border-slate-100 hover:bg-slate-50/50 transition-colors";
+        row.innerHTML = `
+          <td class="py-2 px-4 font-bold text-slate-700">${item.word}</td>
+          <td class="py-2 px-4 text-slate-500">${item.indonesian}</td>
+          <td class="py-2 px-4 text-center">
+            <span class="inline-block text-[10px] px-2 py-0.5 rounded-full border ${levelColor} font-bold uppercase">${item.difficulty}</span>
+          </td>
+          <td class="py-2 px-4 text-center">
+            <button onclick="deleteWord(${index})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-100 transition-all">
+              Hapus
+            </button>
+          </td>
+        `;
+        adminWordsTableBody.appendChild(row);
+      });
+    }
+
+    // Menghapus kata secara otomatis dan instan tanpa popup konfirmasi browser yang memblokir iframe
+    window.deleteWord = function(index) {
+      vocabularyList.splice(index, 1);
+      saveWordsToLocalStorage();
+      renderAdminWordsTable();
+    };
+
+    function handleAddWordSubmit(e) {
+      e.preventDefault();
+      const word = adminWordInput.value.trim();
+      const indonesian = adminIndoInput.value.trim();
+      const difficulty = adminLevelSelect.value;
+
+      if (!word || !indonesian) return;
+
+      // Check for duplication
+      const isDuplicate = vocabularyList.some(w => w.word.toLowerCase() === word.toLowerCase());
+      if (isDuplicate) {
+        alert("Kata ini sudah ada di database!");
+        return;
+      }
+
+      // Format first letter to uppercase
+      const formattedWord = word.charAt(0).toUpperCase() + word.slice(1);
+      const formattedIndo = indonesian.charAt(0).toUpperCase() + indonesian.slice(1);
+
+      vocabularyList.push({
+        word: formattedWord,
+        indonesian: formattedIndo,
+        difficulty: difficulty
+      });
+
+      saveWordsToLocalStorage();
+      renderAdminWordsTable();
+
+      // Reset Inputs
+      adminWordInput.value = '';
+      adminIndoInput.value = '';
+      adminWordInput.focus();
+    }
+
+    // --- FILE UPLOAD PROCESSING (No Size Limit) ---
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      // Show reading status
+      showUploadStatus("Membaca dan memproses berkas...", "text-softblue-500");
+
+      reader.onload = function(event) {
+        try {
+          const content = event.target.result;
+          let addedCount = 0;
+          let duplicateCount = 0;
+          let parsedWords = [];
+
+          // Try parsing as JSON first
+          if (file.name.endsWith('.json')) {
+            try {
+              const data = JSON.parse(content);
+              if (Array.isArray(data)) {
+                parsedWords = data;
+              } else if (typeof data === 'object') {
+                // If it's a single object, wrap it
+                parsedWords = [data];
+              }
+            } catch (err) {
+              throw new Error("Berkas JSON tidak valid atau rusak.");
+            }
+          } 
+          // Default to plain text parser (.txt or .csv)
+          else {
+            const lines = content.split(/\r?\n/);
+            lines.forEach(line => {
+              const trimmedLine = line.trim();
+              if (!trimmedLine) return; // Skip empty lines
+
+              // Split by comma, semicolon, or colon
+              const parts = trimmedLine.split(/[,;:]+/);
+              if (parts.length >= 2) {
+                const wordVal = parts[0].trim();
+                const indoVal = parts[1].trim();
+                let diffVal = parts[2] ? parts[2].trim().toLowerCase() : 'medium';
+
+                // Normalize difficulty
+                if (diffVal !== 'easy' && diffVal !== 'medium' && diffVal !== 'hard') {
+                  diffVal = 'medium';
+                }
+
+                if (wordVal && indoVal) {
+                  parsedWords.push({
+                    word: wordVal,
+                    indonesian: indoVal,
+                    difficulty: diffVal
+                  });
+                }
+              }
+            });
+          }
+
+          if (parsedWords.length === 0) {
+            throw new Error("Tidak menemukan pola kosakata yang cocok. Pastikan format penulisan benar.");
+          }
+
+          // Merge and filter duplicates
+          parsedWords.forEach(item => {
+            const wordClean = item.word ? item.word.trim() : "";
+            const indoClean = item.indonesian ? item.indonesian.trim() : "";
+            let diffClean = item.difficulty ? item.difficulty.trim().toLowerCase() : "medium";
+
+            if (diffClean !== 'easy' && diffClean !== 'medium' && diffClean !== 'hard') {
+              diffClean = 'medium';
+            }
+
+            if (!wordClean || !indoClean) return;
+
+            // Check if already exists in main list
+            const isDuplicate = vocabularyList.some(
+              w => w.word.toLowerCase() === wordClean.toLowerCase()
+            );
+
+            if (!isDuplicate) {
+              // Format first character to uppercase
+              const formattedWord = wordClean.charAt(0).toUpperCase() + wordClean.slice(1);
+              const formattedIndo = indoClean.charAt(0).toUpperCase() + indoClean.slice(1);
+
+              vocabularyList.push({
+                word: formattedWord,
+                indonesian: formattedIndo,
+                difficulty: diffClean
+              });
+              addedCount++;
+            } else {
+              duplicateCount++;
+            }
+          });
+
+          // Save and render
+          if (addedCount > 0) {
+            saveWordsToLocalStorage();
+            renderAdminWordsTable();
+            showUploadStatus("✓ Sukses mengunggah! Berhasil menambahkan " + addedCount + " kata baru. (" + duplicateCount + " kata duplikat diabaikan)", "text-pastelgreen-500");
+          } else {
+            showUploadStatus("ℹ️ Berkas berhasil dibaca, namun semua kata (" + duplicateCount + " kata) sudah ada di database.", "text-pastelorange-500");
+          }
+
+        } catch (error) {
+          showUploadStatus("❌ Gagal memproses berkas: " + error.message, "text-pastelred-500");
+        } finally {
+          // Clear input file value so user can upload the same file again if needed
+          adminFileUploadInput.value = "";
+        }
+      };
+
+      reader.onerror = function() {
+        showUploadStatus("❌ Kesalahan saat membaca berkas.", "text-pastelred-500");
+      };
+
+      // Read as text
+      reader.readAsText(file);
+    }
+
+    function showUploadStatus(msg, colorClass) {
+      uploadStatusMessage.textContent = msg;
+      uploadStatusMessage.className = "text-xs font-semibold mt-2.5 text-center sm:text-left " + colorClass;
+      uploadStatusMessage.classList.remove('hidden');
+    }
+
+    // NEW: DEFINING resetWordsToDefault() to prevent ReferenceError
+    function resetWordsToDefault() {
+      vocabularyList = [...defaultVocabularyList];
+      saveWordsToLocalStorage();
+      renderAdminWordsTable();
+      // Hide status message upon reset
+      uploadStatusMessage.classList.add('hidden');
+    }
+
+    // --- PROFILE PHOTO MANAGEMENT (Uploader & LocalStorage Reader) ---
+    function handleProfileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Ensure that file is indeed an image
+      if (!file.type.startsWith('image/')) {
+        alert("Harap pilih berkas gambar yang valid!");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const base64Image = event.target.result;
+        
+        // Save image to localStorage
+        localStorage.setItem('typing_race_user_profile', base64Image);
+        
+        // Display new profile picture immediately
+        applyUserProfileImage(base64Image);
+      };
+      
+      reader.readAsDataURL(file);
+    }
+
+    // --- EVENT LISTENERS INITIALIZATION ---
+    window.addEventListener('load', () => {
+      // Init background animation
+      initBubbles();
+      updateCounts();
+      
+      // Load user profile picture from local memory
+      loadUserProfile();
+      
+      // Generate random quote
+      generateRandomQuote();
+      
+      // Default level selection
+      selectLevel('medium');
+      selectGameMode('classic');
+
+      // Setup inputs & events
+      typingInputField.addEventListener('input', handleTypingInput);
+      
+      // Trigger validation on space or enter key
+      typingInputField.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          const typedVal = typingInputField.value.trim();
+          const targetWord = currentWordObj.word;
+          
+          if (typedVal.toLowerCase() === targetWord.toLowerCase()) {
+            if (selectedGameMode === 'shoot') {
+              clearInterval(shootFallInterval);
+            }
+            processCorrectWord();
+          } else {
+            triggerMistakeEffect();
+          }
+        }
+      });
+
+      // --- Room Navigation Events ---
+      toPlayerRoomBtn.addEventListener('click', () => {
+        showScreen(homeScreen);
+      });
+
+      toAdminRoomBtn.addEventListener('click', () => {
+        renderAdminWordsTable();
+        showScreen(adminScreen);
+      });
+
+      backToRoomsFromHomeBtn.addEventListener('click', () => {
+        generateRandomQuote(); // Change quote when coming back
+        showScreen(roomSelectionScreen);
+      });
+
+      backToRoomsFromAdminBtn.addEventListener('click', () => {
+        generateRandomQuote(); // Change quote when coming back
+        showScreen(roomSelectionScreen);
+      });
+
+      // Actions buttons binding
+      startGameBtn.addEventListener('click', startGame);
+      
+      showLeaderboardBtn.addEventListener('click', () => {
+        renderLeaderboard();
+        showScreen(leaderboardScreen);
+      });
+
+      closeLeaderboardBtn.addEventListener('click', () => {
+        showScreen(homeScreen);
+      });
+
+      clearLeaderboardBtn.addEventListener('click', clearLeaderboard);
+
+      retryGameBtn.addEventListener('click', startGame);
+      
+      backToHomeBtn.addEventListener('click', () => {
+        showScreen(homeScreen);
+      });
+
+      saveScoreBtn.addEventListener('click', saveRecord);
+
+      toggleAudioBtn.addEventListener('click', toggleAudio);
+
+      // Admin Submit Events
+      addWordForm.addEventListener('submit', handleAddWordSubmit);
+      resetWordsBtn.addEventListener('click', resetWordsToDefault);
+      
+      // File Upload Event Listener
+      adminFileUploadInput.addEventListener('change', handleFileUpload);
+
+      // New Profile Photo Upload Event Listener
+      profileImageInput.addEventListener('change', handleProfileUpload);
+
+      // Game Screen Exit Button Event Listener
+      exitGameBtn.addEventListener('click', exitGame);
+
+      // Re-initialize bubbles on screen resize dynamically
+      window.addEventListener('resize', initBubbles);
+    });
+  </script>
+</body>
+</html>
